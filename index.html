@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Aplikasi Money Tracker Poktan - Atur penjualan dan pengeluaran dengan mudah." />
+  <meta name="keywords" content="money tracker, poktan, manajemen keuangan, penjualan, pengeluaran" />
+  <meta name="theme-color" content="#6f77ff" />
+  <title>Aplikasi Manajemen Poktan</title>
+  <link rel="icon" type="image/svg+xml" href="/images/poktan.svg">
+
+  <!-- font -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #fff;
+      --muted: #6b7280;
+      --accent: #6b7cff;
+    }
+    body {
+      font-family: "Nunito", system-ui, -apple-system, Segoe UI, Roboto,
+        "Helvetica Neue", Arial;
+      margin: 0;
+      background: var(--bg);
+      color: #111;
+      line-height: 1.5;
+    }
+    .content {
+      padding: 16px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    /* hero */
+    .hero {
+      background: linear-gradient(180deg, #6f77ff 0%, #7f8bff 100%);
+      color: #fff;
+      padding: 32px 20px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(13, 22, 55, 0.08);
+      margin-bottom: 20px;
+    }
+    .hero-welcome {
+      font-size: clamp(20px, 5vw, 28px);
+      margin: 0 0 10px 0;
+      font-weight: 700;
+    }
+    .hero-sub {
+      font-size: clamp(14px, 3.5vw, 16px);
+      margin: 0;
+      opacity: 0.95;
+    }
+
+    /* card */
+    .money-card-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .money-card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+    }
+    .card-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .card-amount {
+      margin: 6px 0 0;
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .profit.card {
+      background: var(--card); /* sama seperti money-card */
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .profit.card .card-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .profit.card .card-amount {
+      margin: 6px 0 0;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    /* form */
+    .form-section {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+      margin-bottom: 24px;
+    }
+    .form-title {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #eef2ff;
+      background: #fbfdff;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+    .product-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .product-item + .product-item {
+      margin-top: 10px;
+    }
+
+    /* transaction */
+    .transaction-section {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+      overflow-x: auto; /* biar tabel bisa geser di hp */
+    }
+    .transaction-title {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .transaction-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px; /* biar tabel rapih dan bisa scroll */
+    }
+    .transaction-table th,
+    .transaction-table td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 13px;
+    }
+    .transaction-table th {
+      background: #f9fafb;
+      color: var(--muted);
+    }
+    .type-income { color: green; font-weight: 600; }
+    button {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* responsive tweaks */
+    @media (max-width: 480px) {
+      .form-section, .transaction-section {
+        padding: 16px;
+      }
+      .product-item { flex-direction: column; align-items: flex-start; }
+      .product-item input[type="number"] { width: 100%; margin-top: 8px; }
+    }
+  </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>   
+</head>
+<body>
+  <div class="content">
+    <!-- hero -->
+    <section class="hero">
+      <h1 class="hero-welcome">Aplikasi Manajemen Poktan</h1>
+      <p class="hero-sub">Mari Atur Transaksi Poktan Menjadi Lebih Baik</p>
+    </section>
+
+    <!-- card -->
+    <div class="money-card-content">
+      <div class="money-card total-balance">
+        <h3 class="card-title">Total Uang</h3>
+        <p class="card-amount">Rp 0</p>
+      </div>
+      <div class="money-card income">
+        <h3 class="card-title">Penjualan</h3>
+        <p class="card-amount">Rp 0</p>
+      </div>
+      <div class="money-card expense">
+        <h3 class="card-title">Pengeluaran</h3>
+        <p class="card-amount">Rp 0</p>
+      </div>
+      <div class="money-card expense">
+        <h3 class="card-title">Saldo Awal</h3>
+        <p class="card-amount">Rp 0</p>
+      </div>
+      <div class="profit card">
+        <h3 class="card-title"> Keuntungan</h3>
+        <div class="card-amount" id="profit-card">Rp 0</div>
+      </div>
+    </div> 
+
+          <!-- Add Transaction (di atas history) -->
+      <section class="form-section">
+        <h2 class="form-title">Transaksi Penjualan</h2>
+        <form class="transaction-form">
+          <!-- Nama Pembeli -->
+          <label>
+            Nama Pembeli
+            <input class="form-input" id="buyer-name" placeholder="Contoh: Agus" />
+          </label>
+
+          <!-- Pilih Produk -->
+          <label style="display:block;margin-top:16px">Pilih Produk</label>
+          <div id="product-list" style="margin-top:8px; display:flex; flex-direction:column;">
+            <div class="product-item">
+              <label style="display:flex; align-items:center; gap:8px; flex:1;">
+                <input type="checkbox" class="product-check" value="Urea|150000" />
+                <span>Urea (Rp 150.000)</span>
+              </label>
+              <input type="number" class="qty-input" placeholder="Qty" min="1" style="width:80px;" />
+            </div>
+            <div class="product-item">
+              <label style="display:flex; align-items:center; gap:8px; flex:1;">
+                <input type="checkbox" class="product-check" value="Phonska|250000" />
+                <span>Phonska (Rp 250.000)</span>
+              </label>
+              <input type="number" class="qty-input" placeholder="Qty" min="1" style="width:80px;" />
+            </div>
+            <div class="product-item">
+              <label style="display:flex; align-items:center; gap:8px; flex:1;">
+                <input type="checkbox" class="product-check" value="Organik|100000" />
+                <span>Organik (Rp 100.000)</span>
+              </label>
+              <input type="number" class="qty-input" placeholder="Qty" min="1" style="width:80px;" />
+            </div>
+          </div>
+
+          <!-- Total Harga -->
+          <label style="display:block;margin-top:16px">
+            Total Harga (Rp)
+            <input class="form-input" id="total-price" readonly />
+          </label>
+
+          <!-- Total Qty -->
+          <label style="display:block;margin-top:12px">
+            Total Qty
+            <input class="form-input" id="total-qty" readonly />
+          </label>
+
+          <!-- Tanggal Pembelian -->
+          <label style="display:block;margin-top:12px">
+            Tanggal Pembelian
+            <input type="date" class="form-input" id="purchase-date" />
+          </label>
+
+          <!-- Status Pembayaran -->
+          <label style="display:block;margin-top:12px">
+            Status Pembayaran
+            <select id="payment-status" class="form-input">
+              <option value="Lunas">Lunas</option>
+              <option value="DP">DP</option>
+            </select>
+          </label>
+
+          <!-- Field Masukan DP -->
+          <label id="dp-field" style="display:none;margin-top:12px">
+            Masukkan DP (Rp)
+            <input type="number" class="form-input" id="dp-amount" placeholder="Masukkan jumlah DP" min="0" />
+          </label>
+
+          <button type="button" id="add-btn">Add Penjualan</button>
+        </form>
+      </section>
+
+            <!-- Transaksi Pengeluaran (di atas history) -->
+      <section class="form-section">
+        <h2 class="form-title">Transaksi Pengeluaran</h2>
+        <form class="transaction-form">
+
+          <!-- Nama Penerima -->
+          <label>
+            Nama Penerima
+            <input class="form-input" id="recipient-name" placeholder="Contoh: Agus" />
+          </label>
+
+          <!-- Tujuan Pengeluaran -->
+          <label style="display:block;margin-top:12px">
+            Tujuan Pengeluaran
+            <input class="form-input" id="expense-purpose" placeholder="Contoh: Beli 20 Karung" />
+          </label>
+
+          <!-- Total Pengeluaran -->
+          <label style="display:block;margin-top:12px">
+            Total Pengeluaran (Rp)
+            <input type="number" class="form-input" id="expense-amount" placeholder="Contoh: 200,000" min="0" />
+          </label>
+
+          <!-- Tanggal Pengeluaran -->
+          <label style="display:block;margin-top:12px">
+            Tanggal Pengeluaran
+            <input type="date" class="form-input" id="expense-date" />
+          </label>
+
+          <button type="button" id="add-expense-btn" style="margin-top:16px;">Input Pengeluaran</button>
+        </form>
+      </section>
+
+      <!-- Tambah Saldo -->
+      <section class="form-section">
+        <h2 class="form-title">Tambah Saldo</h2>
+        <form class="transaction-form">
+
+          <!-- Sumber Saldo -->
+          <label style="display:block;margin-top:12px">
+            Sumber Saldo
+            <input class="form-input" id="topup-source-text" placeholder="Masukkan sumber saldo" />
+          </label>
+
+          <!-- Total Tambah Saldo -->
+          <label>
+            Total Tambah Saldo (Rp)
+            <input type="number" class="form-input" id="topup-amount" placeholder="Masukkan jumlah saldo" min="0" />
+          </label>
+
+          <!-- Tanggal Tambah Saldo -->
+          <label style="display:block;margin-top:12px">
+            Tanggal
+            <input type="date" class="form-input" id="topup-date" />
+          </label>
+
+          <button type="button" id="add-topup-btn" style="margin-top:16px;">Input Saldo</button>
+        </form>
+      </section>
+
+     <!-- Transaction History -->
+    <section class="transaction-section">
+      <h2 class="transaction-title">Transaction History</h2>
+
+      <!-- Pilih Bulan & Tahun -->
+      <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
+        <select id="filter-month" class="form-input" style="max-width:150px;">
+          <option value="1">Januari</option>
+          <option value="2">Februari</option>
+          <option value="3">Maret</option>
+          <option value="4">April</option>
+          <option value="5">Mei</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">Agustus</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Desember</option>
+        </select>
+
+        <select id="filter-year" class="form-input" style="max-width:120px;">
+          <option value="2025" selected>2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+        </select>
+
+        <button id="export-pdf">Export PDF</button>
+      </div>
+
+      <table class="transaction-table" cellpadding="6">
+        <thead>
+          <tr>
+            <th>Nama Pembeli</th>
+            <th>Jumlah Pembelian</th>
+            <th>Total Harga</th>
+            <th>Tanggal</th>
+            <th>Jenis</th>
+            <th>Status Pembayaran</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <script>
+      // ======== Field Penjualan ========
+      const checkboxes = document.querySelectorAll(".product-check");
+      const qtyInputs = document.querySelectorAll(".qty-input");
+      const totalPrice = document.getElementById("total-price");
+      const totalQty = document.getElementById("total-qty");
+      const addBtn = document.getElementById("add-btn");
+      const buyerName = document.getElementById("buyer-name");
+      const purchaseDate = document.getElementById("purchase-date");
+      const paymentStatus = document.getElementById("payment-status");
+      const dpField = document.getElementById("dp-field");
+      const dpAmount = document.getElementById("dp-amount");
+
+      // ======== Field Tambah Saldo ========
+      const topupAmount = document.getElementById("topup-amount");
+      const topupSourceText = document.getElementById("topup-source-text"); // ID baru
+      const topupDate = document.getElementById("topup-date");
+      const addTopupBtn = document.getElementById("add-topup-btn");
+
+      // ======== Field Pengeluaran ========
+      const recipientName = document.getElementById("recipient-name");
+      const expensePurpose = document.getElementById("expense-purpose");
+      const expenseAmount = document.getElementById("expense-amount");
+      const expenseDate = document.getElementById("expense-date");
+      const addExpenseBtn = document.getElementById("add-expense-btn");
+
+      // ======== Card & Table ========
+      const transactionTable = document.querySelector(".transaction-table tbody");
+      const totalUangCard = document.querySelector(".total-balance .card-amount");
+      const incomeCard = document.querySelector(".income .card-amount");
+      const expenseCard = document.querySelector(".expense .card-amount");
+      const saldoAwalCard = document.querySelector(".money-card-content .money-card:nth-child(4) .card-amount");
+      const profitCard = document.querySelector(".profit .card-amount"); // Card keuntungan
+
+      // ======== Variabel ========
+      let saldoAwal = parseInt(saldoAwalCard.textContent.replace(/[^0-9]/g,"")) || 0;
+      let penjualan = parseInt(incomeCard.textContent.replace(/[^0-9]/g,"")) || 0;
+      let pengeluaran = parseInt(expenseCard.textContent.replace(/[^0-9]/g,"")) || 0;
+      let keuntungan = parseInt(profitCard.textContent.replace(/[^0-9]/g,"")) || 0;
+
+      // ======== Fungsi Update Card ========
+      function updateCards() {
+        totalUangCard.textContent = "Rp " + (saldoAwal + penjualan - pengeluaran).toLocaleString();
+        incomeCard.textContent = "Rp " + penjualan.toLocaleString();
+        expenseCard.textContent = "Rp " + pengeluaran.toLocaleString();
+        saldoAwalCard.textContent = "Rp " + saldoAwal.toLocaleString();
+        profitCard.textContent = "Rp " + keuntungan.toLocaleString();
+      }
+
+      // ======== Local Storage ========
+      function saveToStorage() {
+        const data = {
+          saldoAwal,
+          penjualan,
+          pengeluaran,
+          keuntungan,
+          rows: transactionTable.innerHTML
+        };
+        localStorage.setItem("poktanData", JSON.stringify(data));
+      }
+
+      function loadFromStorage() {
+        const saved = localStorage.getItem("poktanData");
+        if (saved) {
+          const data = JSON.parse(saved);
+          saldoAwal = data.saldoAwal;
+          penjualan = data.penjualan;
+          pengeluaran = data.pengeluaran;
+          keuntungan = data.keuntungan || 0;
+          transactionTable.innerHTML = data.rows;
+          updateCards();
+
+          // Re-add event listener tombol Set Lunas
+          document.querySelectorAll(".mark-paid").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const row = btn.closest("tr");
+              const rowAmount = parseInt(row.dataset.amount);
+              const rowDP = parseInt(row.dataset.dp);
+              penjualan += (rowAmount - rowDP);
+              row.dataset.status = "Lunas";
+              row.querySelector(".status-cell").innerHTML = `<span style="color:green">Lunas</span>`;
+              btn.remove();
+              updateCards();
+              saveToStorage();
+            });
+          });
+
+          // Re-add event listener tombol Edit/Delete
+          document.querySelectorAll(".delete-btn").forEach(btn => btn.addEventListener("click", deleteRow));
+          document.querySelectorAll(".edit-btn").forEach(btn => btn.addEventListener("click", editRow));
+        }
+      }
+
+      // ======== Hitung Total Harga & Qty ========
+      function hitungTotal() {
+        let hargaTotal = 0, totalJumlah = 0;
+        checkboxes.forEach((checkbox, i) => {
+          if (checkbox.checked) {
+            const [nama, harga] = checkbox.value.split("|");
+            const qty = parseInt(qtyInputs[i].value || 0);
+            if (qty > 0) {
+              hargaTotal += parseInt(harga) * qty;
+              totalJumlah += qty;
+            }
+          }
+        });
+        totalPrice.value = hargaTotal;
+        totalQty.value = totalJumlah;
+      }
+
+      checkboxes.forEach(cb => cb.addEventListener("change", hitungTotal));
+      qtyInputs.forEach(q => q.addEventListener("input", hitungTotal));
+
+      // ======== Tampilkan DP ========
+      paymentStatus.addEventListener("change", () => {
+        dpField.style.display = paymentStatus.value === "DP" ? "block" : "none";
+      });
+
+      // ======== Tambah Penjualan ========
+      addBtn.addEventListener("click", () => {
+        const buyer = buyerName.value.trim();
+        const date = purchaseDate.value;
+        const amount = parseInt(totalPrice.value || 0);
+        const status = paymentStatus.value;
+        const dp = parseInt(dpAmount.value || 0);
+
+        // Ambil produk yang dipilih
+        let produkDipilih = [];
+        let totalProfit = 0;
+        checkboxes.forEach((checkbox, i) => {
+          if (checkbox.checked && qtyInputs[i].value > 0) {
+            const [nama, hargaJual] = checkbox.value.split("|");
+            const qty = parseInt(qtyInputs[i].value);
+            const hargaJualInt = parseInt(hargaJual);
+            const hargaModal = Math.floor(hargaJualInt * 0.9);
+            totalProfit += (hargaJualInt - hargaModal) * qty;
+            produkDipilih.push(`${nama} x${qty}`);
+          }
+        });
+
+        if (!buyer || !date || produkDipilih.length === 0) {
+          alert("Lengkapi semua data transaksi!");
+          return;
+        }
+
+        let actionHTML = `
+          ${status === "DP" ? `<button class="mark-paid">Set Lunas</button>` : ""}
+          <button class="edit-btn">Edit</button>
+          <button class="delete-btn">Delete</button>
+        `;
+
+        const newRow = `
+          <tr data-amount="${amount}" data-dp="${dp}" data-status="${status}" data-jenis="Penjualan" data-profit="${totalProfit}">
+            <td>${buyer}</td>
+            <td>${produkDipilih.join(", ")}</td>
+            <td>Rp ${amount.toLocaleString()}</td>
+            <td>${date}</td>
+            <td>Penjualan</td>
+            <td class="status-cell"><span style="color:${status==="Lunas"?"green":"orange"}">${status}${status==="DP"? " (Rp " + dp.toLocaleString() + ")" : ""}</span></td>
+            <td>${actionHTML}</td>
+          </tr>
+        `;
+        transactionTable.insertAdjacentHTML("beforeend", newRow);
+
+        if (status === "DP") penjualan += dp; else penjualan += amount;
+        keuntungan += totalProfit;
+        updateCards();
+
+        const lastRow = transactionTable.lastElementChild;
+
+        // Set Lunas
+        lastRow.querySelector(".mark-paid")?.addEventListener("click", () => {
+          const rowAmount = parseInt(lastRow.dataset.amount);
+          const rowDP = parseInt(lastRow.dataset.dp);
+          penjualan += (rowAmount - rowDP);
+          lastRow.dataset.status = "Lunas";
+          lastRow.querySelector(".status-cell").innerHTML = `<span style="color:green">Lunas</span>`;
+          lastRow.querySelector(".mark-paid").remove();
+          updateCards();
+          saveToStorage();
+        });
+
+        // Edit/Delete
+        lastRow.querySelector(".delete-btn").addEventListener("click", deleteRow);
+        lastRow.querySelector(".edit-btn").addEventListener("click", editRow);
+
+        resetPenjualanForm();
+      });
+
+      // ======== Tambah Saldo ========
+      addTopupBtn.addEventListener("click", () => {
+      const amount = parseInt(topupAmount.value || 0);
+      const source = topupSourceText.value.trim(); // pakai ID baru
+      const date = topupDate.value;
+
+      if (!amount || !source || !date) {
+        alert("Lengkapi semua data tambah saldo!");
+        return;
+      }
+
+      saldoAwal += amount;
+      updateCards();
+
+      const newRow = `
+        <tr data-amount="${amount}" data-jenis="Tambah Saldo">
+          <td>${source}</td>
+          <td>-</td>
+          <td>Rp ${amount.toLocaleString()}</td>
+          <td>${date}</td>
+          <td>Tambah Saldo</td>
+          <td>-</td>
+          <td>
+            <button class="edit-btn">Edit</button>
+            <button class="delete-btn">Delete</button>
+          </td>
+        </tr>
+      `;
+      transactionTable.insertAdjacentHTML("beforeend", newRow);
+      const lastRow = transactionTable.lastElementChild;
+      lastRow.querySelector(".delete-btn").addEventListener("click", deleteRow);
+      lastRow.querySelector(".edit-btn").addEventListener("click", editRow);
+
+      topupAmount.value = "";
+      topupSourceText.value = ""; // pakai ID baru
+      topupDate.value = "";
+
+      saveToStorage();
+    });
+
+      // ======== Tambah Pengeluaran ========
+      addExpenseBtn.addEventListener("click", () => {
+        const name = recipientName.value.trim();
+        const purpose = expensePurpose.value.trim();
+        const amount = parseInt(expenseAmount.value || 0);
+        const date = expenseDate.value;
+        if (!name || !purpose || !amount || !date) {
+          alert("Lengkapi semua data pengeluaran!");
+          return;
+        }
+
+        pengeluaran += amount;
+        updateCards();
+
+        const newRow = `
+          <tr data-amount="${amount}" data-jenis="Pengeluaran">
+            <td>${name}</td>
+            <td>${purpose}</td>
+            <td>Rp ${amount.toLocaleString()}</td>
+            <td>${date}</td>
+            <td>Pengeluaran</td>
+            <td>-</td>
+            <td>
+              <button class="edit-btn">Edit</button>
+              <button class="delete-btn">Delete</button>
+            </td>
+          </tr>
+        `;
+        transactionTable.insertAdjacentHTML("beforeend", newRow);
+        const lastRow = transactionTable.lastElementChild;
+        lastRow.querySelector(".delete-btn").addEventListener("click", deleteRow);
+        lastRow.querySelector(".edit-btn").addEventListener("click", editRow);
+
+        recipientName.value = "";
+        expensePurpose.value = "";
+        expenseAmount.value = "";
+        expenseDate.value = "";
+
+        saveToStorage();
+      });
+
+      // ======== Fungsi Edit & Delete ========
+      function deleteRow(e) {
+        const row = e.target.closest("tr");
+        const jenis = row.dataset.jenis;
+        const amount = parseInt(row.dataset.amount || 0);
+        const profit = parseInt(row.dataset.profit || 0);
+        const status = row.dataset.status || "";
+
+        if (jenis === "Penjualan") {
+          if (status === "DP") penjualan -= parseInt(row.dataset.dp || 0);
+          else penjualan -= amount;
+          keuntungan -= profit;
+        } else if (jenis === "Tambah Saldo") {
+          saldoAwal -= amount;
+        } else if (jenis === "Pengeluaran") {
+          pengeluaran -= amount;
+        }
+
+        row.remove();
+        updateCards();
+        saveToStorage();
+      }
+
+      function editRow(e) {
+        const row = e.target.closest("tr");
+        const jenis = row.dataset.jenis;
+        const amount = parseInt(row.dataset.amount || 0);
+        const profit = parseInt(row.dataset.profit || 0);
+        const status = row.dataset.status || "";
+
+        if (jenis === "Penjualan") {
+          buyerName.value = row.cells[0].textContent;
+          const produkList = row.cells[1].textContent.split(", ");
+          checkboxes.forEach((cb, i) => {
+            const produkName = cb.value.split("|")[0];
+            const match = produkList.find(p => p.includes(produkName));
+            if (match) {
+              cb.checked = true;
+              const qty = parseInt(match.split("x")[1]);
+              qtyInputs[i].value = qty;
+            } else {
+              cb.checked = false;
+              qtyInputs[i].value = "";
+            }
+          });
+          totalPrice.value = row.dataset.amount;
+          totalQty.value = produkList.reduce((sum, p) => sum + parseInt(p.split("x")[1]), 0);
+          purchaseDate.value = row.cells[3].textContent;
+          paymentStatus.value = status;
+          dpField.style.display = status === "DP" ? "block" : "none";
+          dpAmount.value = row.dataset.dp || 0;
+
+          if (status === "DP") penjualan -= parseInt(row.dataset.dp || 0);
+          else penjualan -= amount;
+          keuntungan -= profit;
+
+        } else if (jenis === "Tambah Saldo") {
+          topupAmount.value = amount;
+          topupSource.value = row.cells[0].textContent;
+          topupDate.value = row.cells[3].textContent;
+          saldoAwal -= amount;
+        } else if (jenis === "Pengeluaran") {
+          expenseAmount.value = amount;
+          recipientName.value = row.cells[0].textContent;
+          expensePurpose.value = row.cells[1].textContent;
+          expenseDate.value = row.cells[3].textContent;
+          pengeluaran -= amount;
+        }
+
+        row.remove();
+        updateCards();
+        saveToStorage();
+      }
+
+      function resetPenjualanForm() {
+        buyerName.value = "";
+        purchaseDate.value = "";
+        totalPrice.value = "";
+        totalQty.value = "";
+        dpAmount.value = "";
+        paymentStatus.value = "Lunas";
+        dpField.style.display = "none";
+        checkboxes.forEach((cb, i) => { cb.checked=false; qtyInputs[i].value=""; });
+      }
+
+      // ======== Load data dari storage saat pertama kali ========
+      loadFromStorage();
+    </script>
+   
+    <script>
+    const exportBtn = document.getElementById("export-pdf");
+    const filterMonth = document.getElementById("filter-month");
+    const filterYear = document.getElementById("filter-year");
+
+    exportBtn.addEventListener("click", () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const month = parseInt(filterMonth.value);
+      const year = parseInt(filterYear.value);
+
+      // Ambil data card
+      const totalUang = totalUangCard.textContent;
+      const saldoAwalVal = saldoAwalCard.textContent;
+      const penjualanVal = incomeCard.textContent;
+      const pengeluaranVal = expenseCard.textContent;
+      const profitVal = profitCard.textContent;
+
+      // =====================================
+      // 1. Halaman Penjualan
+      // =====================================
+      let penjualanRows = [];
+      let totalQtyPenjualan = 0;
+
+      document.querySelectorAll(".transaction-table tbody tr").forEach(tr => {
+        const tgl = new Date(tr.cells[3].textContent);
+        if (tgl.getMonth() + 1 === month && tgl.getFullYear() === year && tr.dataset.jenis === "Penjualan") {
+          const produkList = tr.cells[1].textContent.split(", ");
+          let qtySum = 0;
+          produkList.forEach(p => {
+            const q = parseInt(p.split("x")[1]);
+            qtySum += q;
+          });
+          totalQtyPenjualan += qtySum;
+
+          // Format total harga dengan Rp dan desimal
+          const totalHarga = parseInt(tr.cells[2].textContent.replace(/[^0-9]/g,"")) || 0;
+          const totalHargaStr = `Rp ${totalHarga.toLocaleString('id-ID', { minimumFractionDigits: 0 })}`;
+
+          penjualanRows.push([
+            tr.cells[0].textContent,
+            produkList.map(p => p.split("x")[0]).join(", "),
+            qtySum,
+            totalHargaStr,
+            tr.cells[3].textContent,
+            tr.cells[5].textContent
+          ]);
+        }
+      });
+
+      doc.setFontSize(16);
+      doc.text(`Laporan Penjualan - ${filterMonth.options[filterMonth.selectedIndex].text} ${year}`, 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Total Uang: ${totalUang}`, 14, 27);
+      doc.text(`Saldo Awal: ${saldoAwalVal}`, 14, 33);
+      doc.text(`Penjualan: ${penjualanVal}`, 14, 39);
+      doc.text(`Pengeluaran: ${pengeluaranVal}`, 14, 45);
+      doc.text(`Keuntungan: ${profitVal}`, 14, 51);
+
+      doc.autoTable({
+      startY: 60,
+      head: [["Nama Pembeli","Produk","Qty","Total Harga","Tanggal","Status"]],
+      body: penjualanRows,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      foot: [
+        [
+          { content: "Total", colSpan: 2, styles: { halign: 'left' } }, // Judul Total di 2 kolom pertama
+          { content: totalQtyPenjualan, styles: { halign: 'right' } }, // Qty sum
+          "", // Total Harga tidak disum
+          "", // Tanggal kosong
+          ""  // Status kosong
+        ]
+      ],
+      columnStyles: {
+        2: { halign: 'right' }, // Qty rata kanan
+        3: { halign: 'right' }  // Total Harga rata kanan
+      }
+    });
+
+      // =====================================
+      // 2. Halaman Pengeluaran
+      // =====================================
+      doc.addPage();
+      doc.setFontSize(16);
+      doc.text(`Laporan Pengeluaran - ${filterMonth.options[filterMonth.selectedIndex].text} ${year}`, 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Total Uang: ${totalUang}`, 14, 27);
+      doc.text(`Saldo Awal: ${saldoAwalVal}`, 14, 33);
+      doc.text(`Penjualan: ${penjualanVal}`, 14, 39);
+      doc.text(`Pengeluaran: ${pengeluaranVal}`, 14, 45);
+      doc.text(`Keuntungan: ${profitVal}`, 14, 51);
+
+      let pengeluaranRows = [];
+      let totalPengeluaran = 0;
+      document.querySelectorAll(".transaction-table tbody tr").forEach(tr => {
+        const tgl = new Date(tr.cells[3].textContent);
+        if (tgl.getMonth() + 1 === month && tgl.getFullYear() === year && tr.dataset.jenis === "Pengeluaran") {
+          const amount = parseInt(tr.cells[2].textContent.replace(/[^0-9]/g,"")) || 0;
+          totalPengeluaran += amount;
+          const amountStr = `Rp ${amount.toLocaleString('id-ID', { minimumFractionDigits: 0 })}`;
+
+          pengeluaranRows.push([
+            tr.cells[0].textContent, // Nama Penerima
+            tr.cells[1].textContent, // Tujuan
+            amountStr,               // Total Pengeluaran
+            tr.cells[3].textContent  // Tanggal
+          ]);
+        }
+      });
+
+      doc.autoTable({
+      startY: 60,
+      head: [["Nama Penerima","Tujuan Pengeluaran","Total Pengeluaran","Tanggal"]],
+      body: pengeluaranRows,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      foot: [
+        [
+          { content: "Total", colSpan: 2, styles: { halign: 'left' } }, // Judul Total di 2 kolom pertama
+          { content: `Rp ${totalPengeluaran.toLocaleString('id-ID', { minimumFractionDigits: 0 })}`, styles: { halign: 'right' } }, // Total Pengeluaran sum
+          "" // Tanggal kosong
+        ]
+      ],
+      columnStyles: {
+        2: { halign: 'right' } // Total Pengeluaran rata kanan
+      }
+    });
+      // =====================================
+      // 3. Halaman Tambah Saldo
+      // =====================================
+      doc.addPage();
+      doc.setFontSize(16);
+      doc.text(`Laporan Tambah Saldo - ${filterMonth.options[filterMonth.selectedIndex].text} ${year}`, 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Total Uang: ${totalUang}`, 14, 27);
+      doc.text(`Saldo Awal: ${saldoAwalVal}`, 14, 33);
+      doc.text(`Penjualan: ${penjualanVal}`, 14, 39);
+      doc.text(`Pengeluaran: ${pengeluaranVal}`, 14, 45);
+      doc.text(`Keuntungan: ${profitVal}`, 14, 51);
+
+      let topupRows = [];
+      let totalTopup = 0;
+      document.querySelectorAll(".transaction-table tbody tr").forEach(tr => {
+        const tgl = new Date(tr.cells[3].textContent);
+        if (tgl.getMonth() + 1 === month && tgl.getFullYear() === year && tr.dataset.jenis === "Tambah Saldo") {
+          const source = tr.cells[0].textContent; 
+          const amount = parseInt(tr.cells[2].textContent.replace(/[^0-9]/g,"")) || 0;
+          const date = tr.cells[3].textContent;
+
+          totalTopup += amount;
+          topupRows.push([
+            source,
+            `Rp ${amount.toLocaleString('id-ID', { minimumFractionDigits: 0 })}`,
+            date
+          ]);
+        }
+      });
+
+      doc.autoTable({
+      startY: 60,
+      head: [["Sumber Saldo","Total Tambah Saldo","Tanggal"]],
+      body: topupRows,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      foot: [
+        [
+          { content: "Total", styles: { halign: 'left' } }, // Judul total di kolom pertama
+          { content: `Rp ${totalTopup.toLocaleString('id-ID', { minimumFractionDigits: 0 })}`, styles: { halign: 'right' } }, // Total Tambah Saldo sum
+          "" // Tanggal kosong
+        ]
+      ],
+      columnStyles: {
+        1: { halign: 'right' } // Total Tambah Saldo rata kanan
+      }
+    });
+
+      doc.save(`Laporan_Transaksi_${month}_${year}.pdf`);
+    });
+    </script>
+
+  </body>
+</html>
